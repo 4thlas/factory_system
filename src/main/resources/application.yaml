@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: factory_system
+  datasource:
+    url: jdbc:mysql://localhost:3306/factory_system?createDatabaseIfNotExist=true
+    username: root
+    password: 1234
+  jpa:
+    show-sql: true
