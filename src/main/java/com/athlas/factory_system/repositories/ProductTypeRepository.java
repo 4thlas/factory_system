@@ -3,5 +3,7 @@ package com.athlas.factory_system.repositories;
 import com.athlas.factory_system.entities.ProductType;
 import org.springframework.data.repository.CrudRepository;
 
-public interface ProductTypeRepository extends CrudRepository<ProductType, Integer> {
+public interface ProductTypeRepository extends CrudRepository<ProductType, Integer>
+{
+    ProductType findByName(String name);
 }

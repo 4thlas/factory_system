@@ -29,6 +29,8 @@ public class FactorySystemApplication {
             System.out.println(employeeService.getFacilityWorkers((int) i));
         }
 
+        employeeService.removeWorker(7);
+
         System.out.println("\n -------- \n");
 
         for (long i = 1; i <= facilityCount; i++)

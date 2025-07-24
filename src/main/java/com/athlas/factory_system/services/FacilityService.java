@@ -2,14 +2,18 @@ package com.athlas.factory_system.services;
 
 import com.athlas.factory_system.entities.Facility;
 import com.athlas.factory_system.entities.Worker;
+import com.athlas.factory_system.exceptions.productExcepions.ProductTypeInUse;
 import com.athlas.factory_system.repositories.FacilityRepository;
 import com.athlas.factory_system.repositories.ProductTypeRepository;
 import com.athlas.factory_system.repositories.WorkerRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Collectors;
 
 @Service
 @Setter
@@ -34,6 +38,25 @@ public class FacilityService
         facilityRepository.save(newFacility);
     }
 
+    @Transactional
+    public void removeFacility(int facilityId)
+    {
+        var facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
 
+        // Check if the facility has workers assigned
+        if (facility.getWorkers().isEmpty())
+        {
+            facilityRepository.deleteById(facilityId);
+        }
+        else
+        {
+            var facilityWorkers = facility.getWorkers();
 
+            throw new ProductTypeInUse("Facility of id: "+ facilityId +" has assigned workers od id's: "+
+                    facilityWorkers.stream()
+                            .map(worker -> String.valueOf(worker.getId()))
+                            .collect(Collectors.joining(", ")));
+        }
+    }
 }
