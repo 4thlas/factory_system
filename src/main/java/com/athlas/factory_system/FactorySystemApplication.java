@@ -21,5 +21,6 @@ public class FactorySystemApplication {
         ProductsService productsService = context.getBean(ProductsService.class);
         FacilityRepository facilityRepository = context.getBean(FacilityRepository.class);
 
+        facilityService.removeFacility(2);
     }
 }

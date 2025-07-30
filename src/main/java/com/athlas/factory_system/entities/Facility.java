@@ -37,4 +37,9 @@ public class Facility
     @Builder.Default
     @ToString.Exclude
     private List<Worker> workers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "facility")
+    @Builder.Default
+    @ToString.Exclude
+    private List<ProductionLine> productionLines = new ArrayList<>();
 }
