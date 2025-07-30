@@ -8,6 +8,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
+import java.math.BigDecimal;
+
 @SpringBootApplication
 public class FactorySystemApplication {
 
@@ -19,25 +21,5 @@ public class FactorySystemApplication {
         ProductsService productsService = context.getBean(ProductsService.class);
         FacilityRepository facilityRepository = context.getBean(FacilityRepository.class);
 
-
-        //TEST
-
-        long facilityCount = facilityRepository.count();
-
-        for (long i = 1; i <= facilityCount; i++)
-        {
-            System.out.println(employeeService.getFacilityWorkers((int) i));
-        }
-
-        employeeService.removeWorker(7);
-
-        System.out.println("\n -------- \n");
-
-        for (long i = 1; i <= facilityCount; i++)
-        {
-            System.out.println(employeeService.getFacilityWorkers((int) i));
-        }
-
     }
-
 }

@@ -1,7 +1,6 @@
 package com.athlas.factory_system.services;
 
 import com.athlas.factory_system.entities.Facility;
-import com.athlas.factory_system.entities.Worker;
 import com.athlas.factory_system.exceptions.productExcepions.ProductTypeInUse;
 import com.athlas.factory_system.repositories.FacilityRepository;
 import com.athlas.factory_system.repositories.ProductTypeRepository;
@@ -58,5 +57,18 @@ public class FacilityService
                             .map(worker -> String.valueOf(worker.getId()))
                             .collect(Collectors.joining(", ")));
         }
+    }
+
+    @Transactional
+    public void setProductType(int facilityId, String productTypeName)
+    {
+        var facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
+
+        var productType = productTypeRepository.findByNameIgnoreCase(productTypeName);
+
+        facility.setProductType(productType);
+
+        System.out.println("Facility " + facilityId + " is now manufacturing " + productType.getName());
     }
 }

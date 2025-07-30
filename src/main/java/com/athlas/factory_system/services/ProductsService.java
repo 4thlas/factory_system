@@ -5,13 +5,8 @@ import com.athlas.factory_system.exceptions.productExcepions.ProductTypeAlreadyE
 import com.athlas.factory_system.exceptions.productExcepions.ProductTypeInUse;
 import com.athlas.factory_system.repositories.FacilityRepository;
 import com.athlas.factory_system.repositories.ProductTypeRepository;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.transaction.Transactional;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -45,17 +40,17 @@ public class ProductsService
     @Transactional
     public void removeProductType(String name)
     {
-        var productType = productTypeRepository.findByName("name");
+        var productType = productTypeRepository.findByNameIgnoreCase(name);
+
+        var facilitiesUsingType = facilityRepository.findAllByProductType(productType);
 
         // Check if any facility manufactures this type
-        if (facilityRepository.findAllByProductType(productType).isEmpty())
+        if (facilitiesUsingType.isEmpty())
         {
             productTypeRepository.deleteById(productType.getId());
         }
         else
         {
-            var facilitiesUsingType = facilityRepository.findAllByProductType(productType);
-
             throw new ProductTypeInUse("Product type \""+ name +"\" is in use by facilities of id's: "+
                     facilitiesUsingType.stream()
                             .map(facility -> String.valueOf(facility.getId()))
