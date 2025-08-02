@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.apache.catalina.Manager;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,9 @@ public class Facility
     @Column(name = "location")
     private String location;
 
+    @Column(name = "total_revenue")
+    private BigDecimal totalRevenue;
+
     @OneToOne
     @JoinColumn(name = "manager_id")
     private Worker manager;
@@ -38,8 +42,8 @@ public class Facility
     @ToString.Exclude
     private List<Worker> workers = new ArrayList<>();
 
-    @OneToMany(mappedBy = "facility")
+    @OneToMany(mappedBy = "facility", fetch = FetchType.EAGER)
     @Builder.Default
-    @ToString.Exclude
+    //@ToString.Exclude
     private List<ProductionLine> productionLines = new ArrayList<>();
 }

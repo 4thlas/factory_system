@@ -32,5 +32,5 @@ public class Worker
     @ManyToOne
     @JoinColumn(name = "facility_id")
     @ToString.Exclude
-    Facility facility;
+    private Facility facility;
 }

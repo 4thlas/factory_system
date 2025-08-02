@@ -1,5 +1,6 @@
 package com.athlas.factory_system;
 
+import com.athlas.factory_system.repositories.BatchRepository;
 import com.athlas.factory_system.repositories.FacilityRepository;
 import com.athlas.factory_system.services.FacilityService;
 import com.athlas.factory_system.services.EmployeeService;
@@ -20,7 +21,9 @@ public class FactorySystemApplication {
         EmployeeService employeeService = context.getBean(EmployeeService.class);
         ProductsService productsService = context.getBean(ProductsService.class);
         FacilityRepository facilityRepository = context.getBean(FacilityRepository.class);
+        BatchRepository batchRepository = context.getBean(BatchRepository.class);
 
-        facilityService.removeFacility(2);
+        System.out.println(batchRepository.findById(BigDecimal.valueOf(1)));
     }
 }
+

@@ -6,25 +6,25 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "production_lines")
-@Getter
-@Setter
+@Table(name = "manufactured_products")
 @Builder
-@NoArgsConstructor
+@Setter
+@Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @ToString
-public class ProductionLine
+public class ManufacturedProduct
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private BigDecimal id;
+
+    @Column(name = "defective")
+    private boolean defective;
 
     @ManyToOne
-    @JoinColumn(name = "facility_id")
+    @JoinColumn(name = "batch_id")
     @ToString.Exclude
-    Facility facility;
-
-    @Column(name = "total_produced")
-    private BigDecimal producedPerMonth;
+    private Batch batch;
 }

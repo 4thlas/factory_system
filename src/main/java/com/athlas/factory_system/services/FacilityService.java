@@ -1,11 +1,12 @@
 package com.athlas.factory_system.services;
 
+import com.athlas.factory_system.entities.Batch;
 import com.athlas.factory_system.entities.Facility;
+import com.athlas.factory_system.entities.ManufacturedProduct;
 import com.athlas.factory_system.entities.ProductionLine;
+import com.athlas.factory_system.utils.ExceptionMessageUtil;
 import com.athlas.factory_system.exceptions.productExcepions.ProductTypeInUse;
-import com.athlas.factory_system.repositories.FacilityRepository;
-import com.athlas.factory_system.repositories.ProductTypeRepository;
-import com.athlas.factory_system.repositories.WorkerRepository;
+import com.athlas.factory_system.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +28,7 @@ public class FacilityService
     private final WorkerRepository workerRepository;
     private final ProductTypeRepository productTypeRepository;
     private final ProductionLineRepository productionLineRepository;
+    private final BatchRepository batchRepository;
 
     @Transactional
     public void createFacility(String location, int productTypeId)
@@ -73,7 +76,10 @@ public class FacilityService
         var facility = facilityRepository.findById(facilityId)
                 .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
 
-        var productType = productTypeRepository.findByNameIgnoreCase(productTypeName);
+        var productTypeOptional = productTypeRepository.findByNameIgnoreCase(productTypeName);
+
+        var productType = productTypeOptional
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Product type", productTypeName)));
 
         facility.setProductType(productType);
 
@@ -107,5 +113,38 @@ public class FacilityService
         productionLineRepository.delete(productionLine);
 
         System.out.println("Production line "+ id +" deleted from facility "+ facilityId);
+    }
+
+    @Transactional
+    public void updateRevenue(int facilityId)
+    {
+        var facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Facility", facilityId)));
+
+        BigDecimal totalValue = facility.getTotalRevenue();
+
+        // Iterate through all production lines of this facility
+        for (ProductionLine productionLine : facility.getProductionLines())
+        {
+            List<Batch> batchesOfLine = batchRepository.findAllByProductionLine(productionLine);
+
+            // Sum values of all batches made on this production line
+            for (Batch batch : batchesOfLine)
+            {
+                // Sum all non-defective product values
+                for (ManufacturedProduct batchProduct : batch.getProducts())
+                {
+                    // Include product value only if is non-defective
+                    if(!batchProduct.isDefective())
+                    {
+                        totalValue = totalValue.add(batch.getProductType().getPrice());
+                    }
+                }
+            }
+        }
+
+        // Update facility in DB
+        facility.setTotalRevenue(totalValue);
+        facilityRepository.save(facility);
     }
 }
