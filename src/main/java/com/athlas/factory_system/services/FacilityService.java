@@ -4,19 +4,16 @@ import com.athlas.factory_system.entities.Batch;
 import com.athlas.factory_system.entities.Facility;
 import com.athlas.factory_system.entities.ManufacturedProduct;
 import com.athlas.factory_system.entities.ProductionLine;
-import com.athlas.factory_system.utils.ExceptionMessageUtil;
-import com.athlas.factory_system.exceptions.productExcepions.ProductTypeInUse;
+import com.athlas.factory_system.exceptions.EntityNotFoundException;
+import com.athlas.factory_system.exceptions.facilityExceptions.WorkersAssignedException;
 import com.athlas.factory_system.repositories.*;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Setter
@@ -47,7 +44,7 @@ public class FacilityService
     public void removeFacility(int facilityId)
     {
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         // Check if the facility has workers assigned
         if (facility.getWorkers().isEmpty())
@@ -63,10 +60,7 @@ public class FacilityService
         {
             var facilityWorkers = facility.getWorkers();
 
-            throw new ProductTypeInUse("Facility of id: "+ facilityId +" has assigned workers of id's: "+
-                    facilityWorkers.stream()
-                            .map(worker -> String.valueOf(worker.getId()))
-                            .collect(Collectors.joining(", ")));
+            throw new WorkersAssignedException(facilityId, facilityWorkers);
         }
     }
 
@@ -74,12 +68,12 @@ public class FacilityService
     public void setProductType(int facilityId, String productTypeName)
     {
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         var productTypeOptional = productTypeRepository.findByNameIgnoreCase(productTypeName);
 
         var productType = productTypeOptional
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Product type", productTypeName)));
+                .orElseThrow(() -> new EntityNotFoundException("Product type", productTypeName));
 
         facility.setProductType(productType);
 
@@ -90,7 +84,7 @@ public class FacilityService
     public void addProductionLine(int facilityId)
     {
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         // Add new production line to DB
         var newProductionLine = ProductionLine.builder()
@@ -106,7 +100,7 @@ public class FacilityService
     public void removeProductionLine(int id)
     {
         var productionLine = productionLineRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Production line of id: "+ id +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Production line", id));
 
         int facilityId = productionLine.getFacility().getId();
 
@@ -119,7 +113,7 @@ public class FacilityService
     public void updateRevenue(int facilityId)
     {
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Facility", facilityId)));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         BigDecimal totalValue = facility.getTotalRevenue();
 

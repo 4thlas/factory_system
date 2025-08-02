@@ -1,13 +1,13 @@
 package com.athlas.factory_system.services;
 
 import com.athlas.factory_system.entities.Worker;
+import com.athlas.factory_system.exceptions.EntityNotFoundException;
 import com.athlas.factory_system.exceptions.employeeExcepions.ManagerAlreadyExistsException;
 import com.athlas.factory_system.exceptions.employeeExcepions.WorkerAlreadyAssignedException;
 import com.athlas.factory_system.exceptions.employeeExcepions.WorkerIsNotManager;
 import com.athlas.factory_system.exceptions.employeeExcepions.WorkerNotAssignedException;
 import com.athlas.factory_system.repositories.FacilityRepository;
 import com.athlas.factory_system.repositories.WorkerRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,7 +31,7 @@ public class EmployeeService
     public void addWorker(int facilityId, String name, String role, int paycheck)
     {
         var assignedFacility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId + " not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         var newWorker = Worker.builder()
                 .facility(assignedFacility)
@@ -48,7 +48,7 @@ public class EmployeeService
     public void removeWorker(int workerId)
     {
         var worker = workerRepository.findById(workerId)
-                .orElseThrow(() -> new EntityNotFoundException("Worker of id: "+ workerId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Worker", workerId));
 
         // If user was manager of facility, unassign
         if (worker.getFacility().getManager() != null && worker.getFacility().getManager() == worker)
@@ -63,10 +63,10 @@ public class EmployeeService
     public void moveWorker(int workerId, int targetFacilityId)
     {
         var worker = workerRepository.findById(workerId)
-                .orElseThrow(() -> new EntityNotFoundException("Worker of id: "+ workerId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Worker", workerId));
 
         var targetFacility = facilityRepository.findById(targetFacilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ targetFacilityId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", targetFacilityId));
 
         // Check if user is not assigned to target facility
         if (worker.getFacility() != targetFacility)
@@ -83,7 +83,7 @@ public class EmployeeService
             targetFacility.getWorkers().add(worker);
         }
         else {
-            throw new WorkerAlreadyAssignedException("Worker of id: "+ workerId +" is already assigned to facility of id: "+ targetFacilityId);
+            throw new WorkerAlreadyAssignedException(workerId, targetFacilityId);
         }
     }
 
@@ -91,10 +91,10 @@ public class EmployeeService
     public void assignManager(int workerId, int facilityId)
     {
         var worker = workerRepository.findById(workerId)
-                .orElseThrow(() -> new EntityNotFoundException("Worker of id: "+ workerId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Worker", workerId));
         
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         // Check if a worker is assigned to the facility
         if (worker.getFacility() == facility)
@@ -108,15 +108,15 @@ public class EmployeeService
                     facility.setManager(worker);
                 }
                 else {
-                    throw new ManagerAlreadyExistsException("Facility " + facility.getId() + " already has a manager (" + facility.getManager().getId() + ")");
+                    throw new ManagerAlreadyExistsException(facility.getId(), facility.getManager().getId());
                 }
             }
             else {
-                throw new WorkerIsNotManager("Worker of id: "+ workerId +" is not a manager.");
+                throw new WorkerIsNotManager(workerId);
             }
         }
         else {
-            throw new WorkerNotAssignedException("Worker of id: "+ workerId +" is not assigned to facility of id: "+ facilityId);
+            throw new WorkerNotAssignedException(workerId, facilityId);
         }
     }
 
@@ -124,7 +124,7 @@ public class EmployeeService
     public void unassignManager(int facilityId)
     {
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         // Unset manager in facility entity
         facility.setManager(null);
@@ -136,7 +136,7 @@ public class EmployeeService
     public List<Worker> getFacilityWorkers(int facilityId)
     {
         var facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new EntityNotFoundException("Facility of id: "+ facilityId +" not found."));
+                .orElseThrow(() -> new EntityNotFoundException("Facility", facilityId));
 
         // Force initialization
         facility.getWorkers().size();

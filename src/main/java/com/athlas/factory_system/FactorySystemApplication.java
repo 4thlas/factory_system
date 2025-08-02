@@ -23,7 +23,8 @@ public class FactorySystemApplication {
         FacilityRepository facilityRepository = context.getBean(FacilityRepository.class);
         BatchRepository batchRepository = context.getBean(BatchRepository.class);
 
-        System.out.println(batchRepository.findById(BigDecimal.valueOf(1)));
+        productsService.produceBatch("345345", 4);
+        //System.out.println(batchRepository.findById(BigDecimal.valueOf(1)));
     }
 }
 

@@ -3,12 +3,11 @@ package com.athlas.factory_system.services;
 import com.athlas.factory_system.entities.Batch;
 import com.athlas.factory_system.entities.ManufacturedProduct;
 import com.athlas.factory_system.entities.ProductType;
-import com.athlas.factory_system.utils.ExceptionMessageUtil;
+import com.athlas.factory_system.exceptions.EntityMismatchException;
 import com.athlas.factory_system.exceptions.productExcepions.ProductTypeAlreadyExists;
 import com.athlas.factory_system.exceptions.productExcepions.ProductTypeInUse;
-import com.athlas.factory_system.exceptions.productExcepions.ProductTypeMismatch;
 import com.athlas.factory_system.repositories.*;
-import jakarta.persistence.EntityNotFoundException;
+import com.athlas.factory_system.exceptions.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.*;
 import org.springframework.stereotype.Service;
@@ -51,7 +50,7 @@ public class ProductsService
         var productTypeOptional = productTypeRepository.findByNameIgnoreCase(name);
 
         var productType = productTypeOptional
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Product type", name)));
+                .orElseThrow(() -> new EntityNotFoundException("Product type", name));
 
         var facilitiesUsingType = facilityRepository.findAllByProductType(productType);
 
@@ -73,10 +72,10 @@ public class ProductsService
     public void produceBatch(String productTypeName, int productionLineId)
     {
         var productType = productTypeRepository.findByNameIgnoreCase(productTypeName)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Product type", productionLineId)));
+                .orElseThrow(() -> new EntityNotFoundException("Product type", productTypeName));
 
         var productionLine = productionLineRepository.findById(productionLineId)
-                .orElseThrow(() -> new EntityNotFoundException(ExceptionMessageUtil.notFoundMsg("Production line", productionLineId)));
+                .orElseThrow(() -> new EntityNotFoundException("Production line", productionLineId));
 
         // Check if productType matches facility's productType
         if (productionLine.getFacility().getProductType() == productType)
@@ -103,10 +102,13 @@ public class ProductsService
             }
 
             batchRepository.save(newBatch);
+
+            // Increment production line producedPerMonth by 1
+            productionLine.setProducedPerMonth(productionLine.getProducedPerMonth().add(BigDecimal.valueOf(1)));
         }
         else
         {
-            throw new ProductTypeMismatch(ExceptionMessageUtil.entityMismatchMsg("ProductType: "+productTypeName, "facility's productType"));
+            throw new EntityMismatchException(productTypeName, "facility", "product type");
         }
 
 
